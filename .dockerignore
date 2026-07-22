@@ -9,3 +9,5 @@ __pycache__/
 *.log
 scratchpad/
 *.md
+*.ps1
+*.tar.gz
