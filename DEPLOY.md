@@ -53,11 +53,13 @@ mkdir -p /root/hr_bot_project && tar -xzf /root/hr_bot_deploy.tar.gz -C /root/hr
 cd /root/hr_bot_project
 ```
 
-**Вариант B — через Git** (если создашь репозиторий — удобно обновлять):
+**Вариант B — через Git** (удобно обновлять через `git pull`):
 ```bash
-git clone <URL_РЕПОЗИТОРИЯ> hr_bot_project && cd hr_bot_project
+git clone https://github.com/festival-pixel/hr_bot.git hr_bot_project && cd hr_bot_project
 cp .env.example .env   # затем заполнить .env (см. шаг 5)
 ```
+> Репозиторий приватный → при `git clone` введи логин GitHub и Personal Access
+> Token вместо пароля (github.com → Settings → Developer settings → Tokens).
 
 ## 5. Проверить/поправить `.env` на сервере
 
