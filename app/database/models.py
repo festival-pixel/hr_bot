@@ -58,16 +58,29 @@ class Candidate(Base):
     age: Mapped[int] = mapped_column(Integer)
     phone: Mapped[str] = mapped_column(String(30))
     student: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    # Опыт работы
+    experience: Mapped[str] = mapped_column(String(255))
+    last_workplace: Mapped[str] = mapped_column(String(255))
+
+    # Дети
+    has_children: Mapped[bool] = mapped_column(Boolean, default=False)
+    children_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    youngest_child_age: Mapped[int | None] = mapped_column(
+        Integer, nullable=True
+    )
+
     address: Mapped[str] = mapped_column(String(255))
     latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
     longitude: Mapped[float | None] = mapped_column(Float, nullable=True)
     languages: Mapped[str] = mapped_column(String(255))
     motivation: Mapped[str] = mapped_column(Text)
 
-    # Резюме (Telegram file_id документа)
+    # Резюме (Telegram file_id) + тип: "document" | "photo"
     resume_file_id: Mapped[str | None] = mapped_column(
         String(500), nullable=True
     )
+    resume_type: Mapped[str | None] = mapped_column(String(20), nullable=True)
 
     # Статус обработки
     status: Mapped[str] = mapped_column(String(30), default="new", index=True)

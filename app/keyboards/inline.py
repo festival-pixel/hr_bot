@@ -162,7 +162,7 @@ def list_kb(candidates, status: str, vacancy: str, offset: int, total: int) -> I
     return b.as_markup()
 
 
-def card_kb(number: str, current_status: str) -> InlineKeyboardMarkup:
+def card_kb(candidate) -> InlineKeyboardMarkup:
     b = InlineKeyboardBuilder()
     labels = [
         ("new", "🆕 Новая"),
@@ -171,9 +171,19 @@ def card_kb(number: str, current_status: str) -> InlineKeyboardMarkup:
         ("archived", "📦 Архив"),
     ]
     for s, label in labels:
-        text = f"· {label} ·" if s == current_status else label
-        b.button(text=text, callback_data=f"st:{number}:{s}")
+        text = f"· {label} ·" if s == candidate.status else label
+        b.button(text=text, callback_data=f"st:{candidate.application_number}:{s}")
     b.adjust(2)
+
+    # Быстрая связь с кандидатом (только при наличии @username — надёжная ссылка)
+    if candidate.username:
+        b.row(
+            InlineKeyboardButton(
+                text="✍️ Написать кандидату",
+                url=f"https://t.me/{candidate.username}",
+            )
+        )
+
     b.row(InlineKeyboardButton(text="⬅️ К списку", callback_data="L:all:all:0"))
     return b.as_markup()
 

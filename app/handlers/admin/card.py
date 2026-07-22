@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.repositories.candidate import CandidateRepository
 from app.keyboards.inline import card_kb
 from app.utils.formatters import format_admin_card
+from app.utils.notify import send_resume
 
 router = Router()
 
@@ -21,7 +22,7 @@ async def open_card(callback: CallbackQuery, session: AsyncSession, bot: Bot):
     await bot.send_message(
         chat_id,
         format_admin_card(candidate),
-        reply_markup=card_kb(candidate.application_number, candidate.status),
+        reply_markup=card_kb(candidate),
     )
 
     if candidate.latitude and candidate.longitude:
@@ -31,15 +32,7 @@ async def open_card(callback: CallbackQuery, session: AsyncSession, bot: Bot):
             longitude=candidate.longitude,
         )
 
-    if candidate.resume_file_id:
-        try:
-            await bot.send_document(
-                chat_id,
-                candidate.resume_file_id,
-                caption=f"📄 Резюме {candidate.application_number}",
-            )
-        except Exception:
-            pass
+    await send_resume(bot, chat_id, candidate)
 
     await callback.answer()
 
@@ -54,6 +47,6 @@ async def change_status(callback: CallbackQuery, session: AsyncSession):
 
     await callback.message.edit_text(
         format_admin_card(candidate),
-        reply_markup=card_kb(candidate.application_number, candidate.status),
+        reply_markup=card_kb(candidate),
     )
     await callback.answer("Статус обновлён ✅")

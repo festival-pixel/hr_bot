@@ -24,6 +24,15 @@ def format_confirmation(data: dict, lang: str) -> str:
         if data.get("resume_file_id")
         else t(lang, "resume_none")
     )
+    if data.get("has_children"):
+        children = t(
+            lang,
+            "children_yes_fmt",
+            count=data["children_count"],
+            age=data["youngest_child_age"],
+        )
+    else:
+        children = t(lang, "word_no")
 
     lines = [
         t(lang, "confirm_title"),
@@ -34,6 +43,9 @@ def format_confirmation(data: dict, lang: str) -> str:
         f"🎂 <b>{t(lang, 'label_age')}:</b> {data['age']}",
         f"📱 <b>{t(lang, 'label_phone')}:</b> {escape(data['phone'])}",
         f"🎓 <b>{t(lang, 'label_student')}:</b> {student}",
+        f"💼 <b>{t(lang, 'label_experience')}:</b> {escape(data['experience'])}",
+        f"🏢 <b>{t(lang, 'label_last_workplace')}:</b> {escape(data['last_workplace'])}",
+        f"👶 <b>{t(lang, 'label_children')}:</b> {children}",
         f"🏠 <b>{t(lang, 'label_address')}:</b> {escape(data['address'])}",
         f"📍 <b>{t(lang, 'label_location')}:</b> {location}",
         f"🌐 <b>{t(lang, 'label_languages')}:</b> {escape(data['languages'])}",
@@ -47,8 +59,15 @@ def format_admin_card(c: Candidate) -> str:
     """Полная карточка кандидата для HR (RU)."""
     student = "Да" if c.student else "Нет"
     location = "приложена" if c.latitude else "нет"
-    resume = "приложено" if c.resume_file_id else "нет"
+    if c.resume_file_id:
+        resume = "🖼 фото" if c.resume_type == "photo" else "📄 документ"
+    else:
+        resume = "нет"
     username = f"@{c.username}" if c.username else "—"
+    if c.has_children:
+        children = f"Да (детей: {c.children_count}, младшему: {c.youngest_child_age})"
+    else:
+        children = "Нет"
 
     lines = [
         f"📋 <b>Заявка {c.application_number}</b>",
@@ -61,6 +80,9 @@ def format_admin_card(c: Candidate) -> str:
         f"🎂 <b>Возраст:</b> {c.age}",
         f"📱 <b>Телефон:</b> {escape(c.phone)}",
         f"🎓 <b>Студент:</b> {student}",
+        f"💼 <b>Стаж:</b> {escape(c.experience)}",
+        f"🏢 <b>Последнее место:</b> {escape(c.last_workplace)}",
+        f"👶 <b>Дети:</b> {children}",
         f"🏠 <b>Адрес:</b> {escape(c.address)}",
         f"📍 <b>Геолокация:</b> {location}",
         f"🌐 <b>Языки:</b> {escape(c.languages)}",

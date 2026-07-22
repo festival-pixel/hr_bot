@@ -9,12 +9,14 @@ from app.database.models import Candidate
 
 HEADERS = [
     "№", "Заявка", "Дата", "Статус", "Вакансия", "График", "ФИО",
-    "Возраст", "Телефон", "Студент", "Адрес", "Языки", "О себе",
+    "Возраст", "Телефон", "Студент", "Стаж", "Последнее место",
+    "Дети", "Детей", "Возр. младшего", "Адрес", "Языки", "О себе",
     "Резюме", "Username", "Геолокация",
 ]
 
 COLUMN_WIDTHS = [
-    5, 12, 18, 14, 22, 14, 26, 8, 16, 9, 26, 18, 34, 9, 16, 22,
+    5, 12, 18, 14, 22, 14, 26, 8, 16, 9, 18, 24, 8, 7, 14,
+    26, 18, 34, 9, 16, 22,
 ]
 
 
@@ -47,10 +49,17 @@ def build_candidates_xlsx(candidates: list[Candidate]) -> BytesIO:
             c.age,
             c.phone,
             "Да" if c.student else "Нет",
+            c.experience,
+            c.last_workplace,
+            "Да" if c.has_children else "Нет",
+            c.children_count if c.has_children else "—",
+            c.youngest_child_age if c.has_children else "—",
             c.address,
             c.languages,
             c.motivation,
-            "Да" if c.resume_file_id else "Нет",
+            ("фото" if c.resume_type == "photo" else "документ")
+            if c.resume_file_id
+            else "нет",
             f"@{c.username}" if c.username else "—",
             geo,
         ])

@@ -11,6 +11,7 @@ class Vacancy(str, Enum):
     CASHIER = "cashier"
     CONSULTANT = "consultant"
     KITCHEN = "kitchen"
+    SALAD = "salad"
 
 
 class Schedule(str, Enum):
@@ -31,11 +32,19 @@ VACANCY_ORDER = [
     Vacancy.CASHIER.value,
     Vacancy.CONSULTANT.value,
     Vacancy.KITCHEN.value,
+    Vacancy.SALAD.value,
 ]
 
-# Вакансии, где кандидат выбирает график. Остальные — авто DEFAULT_SCHEDULE.
+# Вакансии, где кандидат выбирает график. Остальные — фикс. график ниже.
 SCHEDULE_CHOICE_VACANCIES = {Vacancy.CASHIER.value, Vacancy.CONSULTANT.value}
 DEFAULT_SCHEDULE = Schedule.DAY.value
+
+# Фиксированные графики для вакансий без выбора
+FIXED_SCHEDULES = {
+    Vacancy.CLEANER.value: "08:00-20:00",
+    Vacancy.KITCHEN.value: "08:00-20:00",
+    Vacancy.SALAD.value: "08:00-18:00",
+}
 
 # Локализованные названия вакансий
 VACANCY_NAMES = {
@@ -44,12 +53,14 @@ VACANCY_NAMES = {
         "cashier": "💰 Кассир",
         "consultant": "🛍 Продавец-консультант",
         "kitchen": "👨‍🍳 Работник кухни",
+        "salad": "🥗 Салатница",
     },
     "uz": {
         "cleaner": "🧹 Farrosh",
         "cashier": "💰 Kassir",
         "consultant": "🛍 Sotuvchi-konsultant",
         "kitchen": "👨‍🍳 Oshpaz",
+        "salad": "🥗 Salatchi",
     },
 }
 
@@ -73,4 +84,5 @@ VACANCY_EMOJI = {
     "cashier": "💰",
     "consultant": "🛍",
     "kitchen": "👨‍🍳",
+    "salad": "🥗",
 }
