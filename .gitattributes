@@ -1,0 +1,8 @@
+# Единые LF-переносы в репозитории (деплой на Linux)
+* text=auto eol=lf
+
+# Бинарные файлы не трогать
+*.xlsx binary
+*.png binary
+*.jpg binary
+*.ico binary

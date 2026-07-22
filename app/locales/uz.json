@@ -1,0 +1,53 @@
+{
+    "welcome": "👋 Xodimlarni tanlash botiga xush kelibsiz!\n\nIltimos, tilni tanlang 👇",
+    "language_selected": "✅ O'zbek tili tanlandi.",
+    "choose_vacancy": "Sizni qiziqtirgan vakansiyani tanlang 👇",
+
+    "ask_fullname": "👤 F.I.O. ni to'liq kiriting:",
+    "ask_age": "🎂 Yoshingiz nechada?",
+    "ask_phone": "📱 Telefon raqamingizni yuboring.\n\nQuyidagi tugmani bosing yoki raqamni qo'lda kiriting 👇",
+    "phone_saved": "✅ Raqam qabul qilindi.",
+    "ask_student": "🎓 Siz talabamisiz?",
+    "ask_address": "🏠 Yashash manzilingizni kiriting (tuman, ko'cha):",
+    "ask_location": "📍 Quyidagi tugmani bosib joylashuvingizni yuboring 👇",
+    "or_skip": "…yoki bu bosqichni o'tkazib yuboring:",
+    "ask_languages": "🌐 Qaysi tillarni bilasiz? (masalan: rus, o'zbek)",
+    "ask_schedule": "🕒 Sizga qanday ish grafigi mos keladi?",
+    "ask_motivation": "💬 Nega bizda ishlashni xohlaysiz? O'zingiz haqingizda qisqacha yozing:",
+    "ask_resume": "📄 Rezyume biriktirmoqchimisiz?\n\nBu majburiy emas, lekin afzallik bo'ladi. Faylni yuboring yoki «O'tkazib yuborish» tugmasini bosing.",
+
+    "btn_yes": "✅ Ha",
+    "btn_no": "❌ Yo'q",
+    "btn_skip": "⏭ O'tkazib yuborish",
+    "btn_send": "✅ Arizani yuborish",
+    "btn_restart": "✏️ Qaytadan to'ldirish",
+    "btn_share_phone": "📲 Raqamimni yuborish",
+    "btn_share_location": "📍 Joylashuvni yuborish",
+
+    "schedule_day": "🕗 08:00–20:00",
+    "schedule_evening": "🌙 12:00–00:00",
+
+    "error_age": "⚠️ Iltimos, to'g'ri yosh kiriting (14 dan 80 gacha son).",
+
+    "confirm_title": "📋 Yuborishdan oldin ma'lumotlarni tekshiring:",
+    "label_vacancy": "Vakansiya",
+    "label_schedule": "Grafik",
+    "label_fullname": "F.I.O.",
+    "label_age": "Yosh",
+    "label_phone": "Telefon",
+    "label_student": "Talaba",
+    "label_address": "Manzil",
+    "label_location": "Joylashuv",
+    "label_languages": "Tillar",
+    "label_motivation": "O'zi haqida",
+    "label_resume": "Rezyume",
+
+    "word_yes": "Ha",
+    "word_no": "Yo'q",
+    "location_attached": "biriktirilgan",
+    "location_skipped": "ko'rsatilmagan",
+    "resume_attached": "biriktirilgan",
+    "resume_none": "yo'q",
+
+    "success": "✅ Rahmat! Sizning <b>{number}</b> arizangiz muvaffaqiyatli yuborildi.\n\nTez orada siz bilan bog'lanamiz. 🤝"
+}
