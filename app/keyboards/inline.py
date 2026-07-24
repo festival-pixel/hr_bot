@@ -74,7 +74,7 @@ def confirm_kb(lang: str) -> InlineKeyboardMarkup:
 
 def admin_menu_kb() -> InlineKeyboardMarkup:
     b = InlineKeyboardBuilder()
-    b.button(text="📋 Все заявки", callback_data="adm:list")
+    b.button(text="🆕 Новые заявки", callback_data="adm:list")
     b.button(text="🔎 Поиск", callback_data="adm:search")
     b.button(text="📊 Статистика", callback_data="adm:stats")
     b.button(text="📥 Экспорт в Excel", callback_data="adm:excel")
@@ -141,27 +141,10 @@ def list_kb(candidates, status: str, vacancy: str, offset: int, total: int) -> I
         )
     b.row(*nav)
 
-    # Фильтр по статусу
+    # Список показывает только NEW — фильтр по вакансии
     def mark(active: bool, label: str) -> str:
         return f"·{label}·" if active else label
 
-    status_row = [
-        InlineKeyboardButton(
-            text=mark(status == "all", "Все"), callback_data=f"L:all:{vacancy}:0"
-        )
-    ]
-    for s, emoji in STATUS_EMOJI.items():
-        # «Отказ» = удаление, отдельного статуса нет — фильтр не показываем
-        if s == "rejected":
-            continue
-        status_row.append(
-            InlineKeyboardButton(
-                text=mark(status == s, emoji), callback_data=f"L:{s}:{vacancy}:0"
-            )
-        )
-    b.row(*status_row)
-
-    # Фильтр по вакансии
     vac_row = [
         InlineKeyboardButton(
             text=mark(vacancy == "all", "Все"), callback_data=f"L:{status}:all:0"
@@ -201,6 +184,12 @@ def card_kb(candidate) -> InlineKeyboardMarkup:
             )
         )
 
+    b.row(
+        InlineKeyboardButton(
+            text="🚫 Заблокировать",
+            callback_data=f"block:{candidate.telegram_id}",
+        )
+    )
     b.row(InlineKeyboardButton(text="⬅️ К списку", callback_data="L:all:all:0"))
     return b.as_markup()
 

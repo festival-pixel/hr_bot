@@ -91,3 +91,29 @@ class Candidate(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
     )
+
+
+class BlockedUser(Base):
+    """Заблокированные пользователи (не могут пользоваться ботом)."""
+
+    __tablename__ = "blocked_users"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    telegram_id: Mapped[int] = mapped_column(
+        BigInteger, unique=True, index=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow
+    )
+
+
+class StatEvent(Base):
+    """Журнал событий для месячной статистики (переживает удаление заявок)."""
+
+    __tablename__ = "stat_events"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    event_type: Mapped[str] = mapped_column(String(20), index=True)  # invited/archived/rejected
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, index=True
+    )

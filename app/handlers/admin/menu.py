@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from aiogram import Bot, F, Router
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
@@ -26,15 +28,23 @@ async def back_to_menu(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
 
 
+MONTHS_RU = [
+    "январь", "февраль", "март", "апрель", "май", "июнь", "июль",
+    "август", "сентябрь", "октябрь", "ноябрь", "декабрь",
+]
+
+
 @router.callback_query(F.data == "adm:stats")
 async def show_stats(callback: CallbackQuery, session: AsyncSession):
-    s = await CandidateRepository(session).stats()
+    s = await CandidateRepository(session).monthly_stats()
+    now = datetime.utcnow()
+    month = MONTHS_RU[now.month - 1]
     text = (
-        "📊 <b>Статистика</b>\n\n"
-        f"Всего заявок: <b>{s.get('total', 0)}</b>\n\n"
-        f"🆕 Новые: {s.get('new', 0)}\n"
-        f"✅ Приглашены: {s.get('invited', 0)}\n"
-        f"📦 Архив: {s.get('archived', 0)}"
+        f"📊 <b>Статистика за {month} {now.year}</b>\n\n"
+        f"📥 Всего заявок за месяц: <b>{s.get('total', 0)}</b>\n\n"
+        f"✅ Приглашено: {s.get('invited', 0)}\n"
+        f"📦 В архиве: {s.get('archived', 0)}\n"
+        f"❌ Отказов: {s.get('rejected', 0)}"
     )
     await callback.message.edit_text(text, reply_markup=back_kb())
     await callback.answer()

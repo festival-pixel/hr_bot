@@ -4,6 +4,7 @@ import logging
 from app.database.db import create_database
 from app.handlers import router as main_router
 from app.loader import bot, dp
+from app.middlewares.block import BlockMiddleware
 from app.middlewares.database import DbSessionMiddleware
 from app.middlewares.user import UserMiddleware
 
@@ -16,9 +17,10 @@ async def main() -> None:
 
     await create_database()
 
-    # DI: сессия БД → пользователь/язык
+    # DI: сессия БД → пользователь/язык → проверка блокировки
     dp.update.outer_middleware(DbSessionMiddleware())
     dp.update.outer_middleware(UserMiddleware())
+    dp.update.outer_middleware(BlockMiddleware())
 
     dp.include_router(main_router)
 

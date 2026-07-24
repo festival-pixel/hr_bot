@@ -6,6 +6,7 @@ from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.constants import VACANCY_NAMES
+from app.database.repositories.block import BlockRepository
 from app.database.repositories.candidate import CandidateRepository
 from app.keyboards.inline import card_kb, reject_confirm_kb, to_list_kb
 from app.states.admin import AdminState
@@ -61,6 +62,7 @@ async def change_status(
     if status == "invited":
         if candidate.status != "invited":
             candidate = await repo.update_status(number, "invited")
+            await repo.log_event("invited")
             await callback.message.edit_text(
                 format_admin_card(candidate), reply_markup=card_kb(candidate)
             )
@@ -93,11 +95,16 @@ async def change_status(
         return
 
     candidate = await repo.update_status(number, status)
+    if status == "archived":
+        await repo.log_event("archived")
     await callback.message.edit_text(
         format_admin_card(candidate),
         reply_markup=card_kb(candidate),
     )
-    await callback.answer("Статус обновлён ✅")
+    if status == "archived":
+        await callback.answer("Заявка отправлена в архив 📦", show_alert=True)
+    else:
+        await callback.answer("Статус обновлён ✅")
 
 
 @router.callback_query(F.data.startswith("del:"))
@@ -113,6 +120,7 @@ async def confirm_reject_delete(
 
     fullname = candidate.fullname
     notified = await send_rejection(bot, candidate)
+    await repo.log_event("rejected")
     await repo.delete(number)
 
     note = "Кандидат уведомлён ✅" if notified else "Уведомить не удалось ⚠️"
@@ -134,6 +142,16 @@ async def cancel_reject(callback: CallbackQuery, session: AsyncSession):
         format_admin_card(candidate), reply_markup=card_kb(candidate)
     )
     await callback.answer("Отменено")
+
+
+@router.callback_query(F.data.startswith("block:"))
+async def block_candidate(callback: CallbackQuery, session: AsyncSession):
+    telegram_id = int(callback.data.split(":", 1)[1])
+    await BlockRepository(session).block(telegram_id)
+    await callback.answer(
+        "🚫 Пользователь заблокирован. Он больше не сможет пользоваться ботом.",
+        show_alert=True,
+    )
 
 
 @router.message(AdminState.invite_date, F.text)

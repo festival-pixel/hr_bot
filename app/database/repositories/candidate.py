@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+from datetime import datetime
+
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database.models import Candidate
+from app.database.models import Candidate, StatEvent
 
 
 class CandidateRepository:
@@ -61,10 +63,11 @@ class CandidateRepository:
         stmt = (
             select(Candidate)
             .where(
+                Candidate.status == "new",
                 or_(
                     Candidate.fullname.ilike(pattern),
                     Candidate.phone.ilike(pattern),
-                )
+                ),
             )
             .order_by(Candidate.id.desc())
             .limit(limit)
@@ -97,12 +100,38 @@ class CandidateRepository:
         )
         return list(result.scalars().all())
 
-    async def stats(self) -> dict[str, int]:
-        result = await self.session.execute(
-            select(Candidate.status, func.count(Candidate.id)).group_by(
-                Candidate.status
+    async def log_event(self, event_type: str) -> None:
+        """Фиксирует событие (invited/archived/rejected) для месячной статистики."""
+        self.session.add(StatEvent(event_type=event_type))
+        await self.session.commit()
+
+    async def monthly_stats(self) -> dict[str, int]:
+        """Статистика за текущий месяц (автосброс на границе месяца)."""
+        now = datetime.utcnow()
+        month_start = now.replace(
+            day=1, hour=0, minute=0, second=0, microsecond=0
+        )
+
+        # Живые заявки, созданные в этом месяце (new/invited/archived)
+        alive = await self.session.execute(
+            select(func.count(Candidate.id)).where(
+                Candidate.created_at >= month_start
             )
         )
-        counts = {status: cnt for status, cnt in result.all()}
-        counts["total"] = sum(counts.values())
-        return counts
+        alive_count = alive.scalar_one()
+
+        # События этого месяца (в т.ч. отказы — уже удалённые заявки)
+        events = await self.session.execute(
+            select(StatEvent.event_type, func.count(StatEvent.id))
+            .where(StatEvent.created_at >= month_start)
+            .group_by(StatEvent.event_type)
+        )
+        ev = {t: c for t, c in events.all()}
+        rejected = ev.get("rejected", 0)
+
+        return {
+            "total": alive_count + rejected,
+            "invited": ev.get("invited", 0),
+            "archived": ev.get("archived", 0),
+            "rejected": rejected,
+        }

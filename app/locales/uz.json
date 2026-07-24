@@ -1,4 +1,6 @@
 {
+    "blocked_msg": "🚫 Botdan foydalanish bloklangan.\n\nAgar bu xato bo'lsa — administrator bilan bog'laning.",
+
     "welcome": "👋 Xodimlarni tanlash botiga xush kelibsiz!\n\nIltimos, tilni tanlang 👇",
     "language_selected": "✅ O'zbek tili tanlandi.",
     "choose_vacancy": "Sizni qiziqtirgan vakansiyani tanlang 👇",
