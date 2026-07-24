@@ -8,7 +8,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.constants import VACANCY_NAMES
 from app.database.repositories.block import BlockRepository
 from app.database.repositories.candidate import CandidateRepository
-from app.keyboards.inline import card_kb, reject_confirm_kb, to_list_kb
+from app.keyboards.inline import (
+    card_kb,
+    purge_confirm_kb,
+    reject_confirm_kb,
+    to_list_kb,
+)
 from app.states.admin import AdminState
 from app.utils.formatters import format_admin_card
 from app.utils.notify import send_invitation, send_rejection, send_resume
@@ -142,6 +147,43 @@ async def cancel_reject(callback: CallbackQuery, session: AsyncSession):
         format_admin_card(candidate), reply_markup=card_kb(candidate)
     )
     await callback.answer("Отменено")
+
+
+@router.callback_query(F.data.startswith("purge:"))
+async def ask_purge(callback: CallbackQuery, session: AsyncSession):
+    number = callback.data.split(":", 1)[1]
+    candidate = await CandidateRepository(session).get_by_number(number)
+    if candidate is None:
+        await callback.answer("Заявка не найдена", show_alert=True)
+        return
+    await callback.message.edit_text(
+        "🗑 <b>Удалить заявку?</b>\n\n"
+        f"Кандидат: <b>{escape(candidate.fullname)}</b> ({candidate.application_number})\n"
+        f"Вакансия: {VACANCY_NAMES['ru'].get(candidate.vacancy, candidate.vacancy)}\n\n"
+        "Кандидат <b>НЕ получит</b> уведомление. Заявка будет удалена "
+        "без возможности восстановления (например, дубликат).",
+        reply_markup=purge_confirm_kb(candidate.application_number),
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("pdel:"))
+async def do_purge(callback: CallbackQuery, session: AsyncSession):
+    number = callback.data.split(":", 1)[1]
+    repo = CandidateRepository(session)
+    candidate = await repo.get_by_number(number)
+    if candidate is None:
+        await callback.answer("Заявка не найдена", show_alert=True)
+        return
+
+    fullname = candidate.fullname
+    # Просто удаляем — без уведомления кандидата и без учёта в статистике
+    await repo.delete(number)
+    await callback.message.edit_text(
+        f"🗑 Заявка <b>{escape(fullname)}</b> ({number}) удалена.",
+        reply_markup=to_list_kb(),
+    )
+    await callback.answer("Удалено")
 
 
 @router.callback_query(F.data.startswith("block:"))

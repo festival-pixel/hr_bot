@@ -108,6 +108,14 @@ def to_list_kb() -> InlineKeyboardMarkup:
     return b.as_markup()
 
 
+def purge_confirm_kb(number: str) -> InlineKeyboardMarkup:
+    b = InlineKeyboardBuilder()
+    b.button(text="🗑 Да, удалить", callback_data=f"pdel:{number}")
+    b.button(text="↩️ Отмена", callback_data=f"dcancel:{number}")
+    b.adjust(1)
+    return b.as_markup()
+
+
 def list_kb(candidates, status: str, vacancy: str, offset: int, total: int) -> InlineKeyboardMarkup:
     b = InlineKeyboardBuilder()
 
@@ -186,9 +194,13 @@ def card_kb(candidate) -> InlineKeyboardMarkup:
 
     b.row(
         InlineKeyboardButton(
+            text="🗑 Удалить",
+            callback_data=f"purge:{candidate.application_number}",
+        ),
+        InlineKeyboardButton(
             text="🚫 Заблокировать",
             callback_data=f"block:{candidate.telegram_id}",
-        )
+        ),
     )
     b.row(InlineKeyboardButton(text="⬅️ К списку", callback_data="L:all:all:0"))
     return b.as_markup()

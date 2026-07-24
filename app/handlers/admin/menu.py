@@ -52,17 +52,22 @@ async def show_stats(callback: CallbackQuery, session: AsyncSession):
 
 @router.callback_query(F.data == "adm:excel")
 async def export_excel(callback: CallbackQuery, session: AsyncSession, bot: Bot):
-    candidates = await CandidateRepository(session).all()
+    # Экспорт за текущий 2-месячный период (сбрасывается каждые 2 месяца)
+    candidates = await CandidateRepository(session).for_current_period()
     if not candidates:
-        await callback.answer("Заявок пока нет", show_alert=True)
+        await callback.answer("За текущий период заявок нет", show_alert=True)
         return
 
+    start = CandidateRepository.current_period_start()
+    period = f"{MONTHS_RU[start.month - 1]}–{MONTHS_RU[start.month]} {start.year}"
     buffer = build_candidates_xlsx(candidates)
-    document = BufferedInputFile(buffer.read(), filename="candidates.xlsx")
+    document = BufferedInputFile(
+        buffer.read(), filename=f"candidates_{start:%Y_%m}.xlsx"
+    )
     await bot.send_document(
         callback.message.chat.id,
         document,
-        caption=f"📥 Экспорт заявок ({len(candidates)})",
+        caption=f"📥 Экспорт за период: {period} ({len(candidates)} заявок)",
     )
     await callback.answer()
 

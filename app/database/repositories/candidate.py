@@ -13,9 +13,20 @@ class CandidateRepository:
         self.session = session
 
     async def _next_number(self) -> str:
-        result = await self.session.execute(select(func.count(Candidate.id)))
-        count = result.scalar_one()
-        return f"HR-{count + 1:06d}"
+        # Берём максимальный существующий номер + 1 (устойчиво к удалениям:
+        # новый номер всегда больше всех, дубликатов не будет).
+        result = await self.session.execute(
+            select(func.max(Candidate.application_number))
+        )
+        last = result.scalar_one()
+        if last:
+            try:
+                n = int(last.split("-")[1]) + 1
+            except (IndexError, ValueError):
+                n = 1
+        else:
+            n = 1
+        return f"HR-{n:06d}"
 
     async def create(self, **data) -> Candidate:
         number = await self._next_number()
@@ -97,6 +108,24 @@ class CandidateRepository:
     async def all(self) -> list[Candidate]:
         result = await self.session.execute(
             select(Candidate).order_by(Candidate.id.asc())
+        )
+        return list(result.scalars().all())
+
+    @staticmethod
+    def current_period_start() -> datetime:
+        """Начало текущего 2-месячного периода (Янв-Фев, Мар-Апр, ...)."""
+        now = datetime.utcnow()
+        start_month = ((now.month - 1) // 2) * 2 + 1
+        return now.replace(
+            month=start_month, day=1, hour=0, minute=0, second=0, microsecond=0
+        )
+
+    async def for_current_period(self) -> list[Candidate]:
+        """Заявки за текущий 2-месячный период (для Excel, сброс каждые 2 месяца)."""
+        result = await self.session.execute(
+            select(Candidate)
+            .where(Candidate.created_at >= self.current_period_start())
+            .order_by(Candidate.id.asc())
         )
         return list(result.scalars().all())
 
