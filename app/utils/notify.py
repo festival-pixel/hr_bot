@@ -9,11 +9,16 @@ from app.keyboards.inline import open_card_kb
 from app.services.i18n import t
 from app.utils.formatters import format_admin_card
 
-# Статусы, о которых уведомляем кандидата, и ключ текста в локали
+# Статусы с авто-сообщением кандидату (invited идёт отдельным потоком с датой)
 CANDIDATE_STATUS_MESSAGES = {
-    "invited": "status_invited_msg",
     "rejected": "status_rejected_msg",
 }
+
+# Место собеседования (фиксированное)
+INTERVIEW_ADDRESS = "ул. Аллаяра Досназарова, ориентир — кафе «Туран»"
+INTERVIEW_LAT = 42.441461
+INTERVIEW_LON = 59.637221
+INTERVIEW_MAPS_URL = "https://www.google.com/maps?q=42.441461,59.637221"
 
 
 async def send_resume(bot: Bot, chat_id: int, candidate: Candidate) -> None:
@@ -54,6 +59,34 @@ async def notify_candidate_status(bot: Bot, candidate: Candidate) -> bool:
         return True
     except Exception:
         # Кандидат заблокировал бота / удалил чат
+        return False
+
+
+async def send_invitation(bot: Bot, candidate: Candidate, date_text: str) -> bool:
+    """Отправляет кандидату приглашение на собеседование с датой, адресом и локацией."""
+    lang = candidate.language or "ru"
+    vacancy = VACANCY_NAMES.get(lang, VACANCY_NAMES["ru"]).get(
+        candidate.vacancy, candidate.vacancy
+    )
+    text = t(
+        lang,
+        "invite_full_msg",
+        name=escape(candidate.fullname),
+        number=candidate.application_number,
+        vacancy=vacancy,
+        date=escape(date_text),
+        address=INTERVIEW_ADDRESS,
+        maps=INTERVIEW_MAPS_URL,
+    )
+    try:
+        await bot.send_message(candidate.telegram_id, text)
+        await bot.send_location(
+            candidate.telegram_id,
+            latitude=INTERVIEW_LAT,
+            longitude=INTERVIEW_LON,
+        )
+        return True
+    except Exception:
         return False
 
 
