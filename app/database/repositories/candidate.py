@@ -82,6 +82,15 @@ class CandidateRepository:
             await self.session.refresh(candidate)
         return candidate
 
+    async def delete(self, number: str) -> bool:
+        """Полностью удаляет заявку из БД. True — если запись существовала."""
+        candidate = await self.get_by_number(number)
+        if candidate is None:
+            return False
+        await self.session.delete(candidate)
+        await self.session.commit()
+        return True
+
     async def all(self) -> list[Candidate]:
         result = await self.session.execute(
             select(Candidate).order_by(Candidate.id.asc())

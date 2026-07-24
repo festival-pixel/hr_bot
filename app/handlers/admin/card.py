@@ -5,15 +5,12 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.constants import VACANCY_NAMES
 from app.database.repositories.candidate import CandidateRepository
-from app.keyboards.inline import card_kb
+from app.keyboards.inline import card_kb, reject_confirm_kb, to_list_kb
 from app.states.admin import AdminState
 from app.utils.formatters import format_admin_card
-from app.utils.notify import (
-    notify_candidate_status,
-    send_invitation,
-    send_resume,
-)
+from app.utils.notify import send_invitation, send_rejection, send_resume
 
 router = Router()
 
@@ -78,6 +75,19 @@ async def change_status(
         await callback.answer("Укажите дату собеседования 👇")
         return
 
+    # «Отказ» → подтверждение и полное удаление заявки
+    if status == "rejected":
+        await callback.message.edit_text(
+            "⚠️ <b>Отклонить и удалить заявку?</b>\n\n"
+            f"Кандидат: <b>{escape(candidate.fullname)}</b> ({candidate.application_number})\n"
+            f"Вакансия: {VACANCY_NAMES['ru'].get(candidate.vacancy, candidate.vacancy)}\n\n"
+            "Кандидат получит уведомление об отказе, а заявка будет "
+            "<b>удалена без возможности восстановления</b>.",
+            reply_markup=reject_confirm_kb(candidate.application_number),
+        )
+        await callback.answer()
+        return
+
     if candidate.status == status:
         await callback.answer("Уже в этом статусе")
         return
@@ -87,13 +97,43 @@ async def change_status(
         format_admin_card(candidate),
         reply_markup=card_kb(candidate),
     )
+    await callback.answer("Статус обновлён ✅")
 
-    if status == "rejected":
-        notified = await notify_candidate_status(bot, candidate)
-        suffix = "кандидат уведомлён ✅" if notified else "не удалось уведомить ⚠️"
-        await callback.answer(f"Статус обновлён. {suffix}", show_alert=True)
-    else:
-        await callback.answer("Статус обновлён ✅")
+
+@router.callback_query(F.data.startswith("del:"))
+async def confirm_reject_delete(
+    callback: CallbackQuery, session: AsyncSession, bot: Bot
+):
+    number = callback.data.split(":", 1)[1]
+    repo = CandidateRepository(session)
+    candidate = await repo.get_by_number(number)
+    if candidate is None:
+        await callback.answer("Заявка не найдена", show_alert=True)
+        return
+
+    fullname = candidate.fullname
+    notified = await send_rejection(bot, candidate)
+    await repo.delete(number)
+
+    note = "Кандидат уведомлён ✅" if notified else "Уведомить не удалось ⚠️"
+    await callback.message.edit_text(
+        f"🗑 Заявка <b>{escape(fullname)}</b> ({number}) отклонена и удалена.\n{note}",
+        reply_markup=to_list_kb(),
+    )
+    await callback.answer("Заявка удалена")
+
+
+@router.callback_query(F.data.startswith("dcancel:"))
+async def cancel_reject(callback: CallbackQuery, session: AsyncSession):
+    number = callback.data.split(":", 1)[1]
+    candidate = await CandidateRepository(session).get_by_number(number)
+    if candidate is None:
+        await callback.answer("Заявка не найдена", show_alert=True)
+        return
+    await callback.message.edit_text(
+        format_admin_card(candidate), reply_markup=card_kb(candidate)
+    )
+    await callback.answer("Отменено")
 
 
 @router.message(AdminState.invite_date, F.text)

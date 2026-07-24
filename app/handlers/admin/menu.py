@@ -34,7 +34,6 @@ async def show_stats(callback: CallbackQuery, session: AsyncSession):
         f"Всего заявок: <b>{s.get('total', 0)}</b>\n\n"
         f"🆕 Новые: {s.get('new', 0)}\n"
         f"✅ Приглашены: {s.get('invited', 0)}\n"
-        f"❌ Отказ: {s.get('rejected', 0)}\n"
         f"📦 Архив: {s.get('archived', 0)}"
     )
     await callback.message.edit_text(text, reply_markup=back_kb())

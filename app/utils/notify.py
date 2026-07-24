@@ -9,11 +9,6 @@ from app.keyboards.inline import open_card_kb
 from app.services.i18n import t
 from app.utils.formatters import format_admin_card
 
-# Статусы с авто-сообщением кандидату (invited идёт отдельным потоком с датой)
-CANDIDATE_STATUS_MESSAGES = {
-    "rejected": "status_rejected_msg",
-}
-
 # Место собеседования (фиксированное)
 INTERVIEW_ADDRESS = "ул. Аллаяра Досназарова, ориентир — кафе «Туран»"
 INTERVIEW_LAT = 42.441461
@@ -37,19 +32,15 @@ async def send_resume(bot: Bot, chat_id: int, candidate: Candidate) -> None:
         pass
 
 
-async def notify_candidate_status(bot: Bot, candidate: Candidate) -> bool:
-    """Шлёт кандидату сообщение при статусе «приглашён»/«отказ». True — если доставлено."""
-    key = CANDIDATE_STATUS_MESSAGES.get(candidate.status)
-    if not key:
-        return False
-
+async def send_rejection(bot: Bot, candidate: Candidate) -> bool:
+    """Шлёт кандидату вежливое сообщение об отказе. True — если доставлено."""
     lang = candidate.language or "ru"
     vacancy = VACANCY_NAMES.get(lang, VACANCY_NAMES["ru"]).get(
         candidate.vacancy, candidate.vacancy
     )
     text = t(
         lang,
-        key,
+        "status_rejected_msg",
         name=escape(candidate.fullname),
         number=candidate.application_number,
         vacancy=vacancy,

@@ -94,6 +94,20 @@ def open_card_kb(number: str) -> InlineKeyboardMarkup:
     return b.as_markup()
 
 
+def reject_confirm_kb(number: str) -> InlineKeyboardMarkup:
+    b = InlineKeyboardBuilder()
+    b.button(text="✅ Да, отклонить и удалить", callback_data=f"del:{number}")
+    b.button(text="↩️ Отмена", callback_data=f"dcancel:{number}")
+    b.adjust(1)
+    return b.as_markup()
+
+
+def to_list_kb() -> InlineKeyboardMarkup:
+    b = InlineKeyboardBuilder()
+    b.button(text="⬅️ К списку", callback_data="L:all:all:0")
+    return b.as_markup()
+
+
 def list_kb(candidates, status: str, vacancy: str, offset: int, total: int) -> InlineKeyboardMarkup:
     b = InlineKeyboardBuilder()
 
@@ -137,6 +151,9 @@ def list_kb(candidates, status: str, vacancy: str, offset: int, total: int) -> I
         )
     ]
     for s, emoji in STATUS_EMOJI.items():
+        # «Отказ» = удаление, отдельного статуса нет — фильтр не показываем
+        if s == "rejected":
+            continue
         status_row.append(
             InlineKeyboardButton(
                 text=mark(status == s, emoji), callback_data=f"L:{s}:{vacancy}:0"
