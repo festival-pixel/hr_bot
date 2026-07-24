@@ -1,9 +1,19 @@
+from html import escape
+
 from aiogram import Bot
 
 from app.config import settings
+from app.constants import VACANCY_NAMES
 from app.database.models import Candidate
 from app.keyboards.inline import open_card_kb
+from app.services.i18n import t
 from app.utils.formatters import format_admin_card
+
+# Статусы, о которых уведомляем кандидата, и ключ текста в локали
+CANDIDATE_STATUS_MESSAGES = {
+    "invited": "status_invited_msg",
+    "rejected": "status_rejected_msg",
+}
 
 
 async def send_resume(bot: Bot, chat_id: int, candidate: Candidate) -> None:
@@ -20,6 +30,31 @@ async def send_resume(bot: Bot, chat_id: int, candidate: Candidate) -> None:
             )
     except Exception:
         pass
+
+
+async def notify_candidate_status(bot: Bot, candidate: Candidate) -> bool:
+    """Шлёт кандидату сообщение при статусе «приглашён»/«отказ». True — если доставлено."""
+    key = CANDIDATE_STATUS_MESSAGES.get(candidate.status)
+    if not key:
+        return False
+
+    lang = candidate.language or "ru"
+    vacancy = VACANCY_NAMES.get(lang, VACANCY_NAMES["ru"]).get(
+        candidate.vacancy, candidate.vacancy
+    )
+    text = t(
+        lang,
+        key,
+        name=escape(candidate.fullname),
+        number=candidate.application_number,
+        vacancy=vacancy,
+    )
+    try:
+        await bot.send_message(candidate.telegram_id, text)
+        return True
+    except Exception:
+        # Кандидат заблокировал бота / удалил чат
+        return False
 
 
 async def notify_new_application(bot: Bot, candidate: Candidate) -> None:

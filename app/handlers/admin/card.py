@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.repositories.candidate import CandidateRepository
 from app.keyboards.inline import card_kb
 from app.utils.formatters import format_admin_card
-from app.utils.notify import send_resume
+from app.utils.notify import notify_candidate_status, send_resume
 
 router = Router()
 
@@ -38,15 +38,29 @@ async def open_card(callback: CallbackQuery, session: AsyncSession, bot: Bot):
 
 
 @router.callback_query(F.data.startswith("st:"))
-async def change_status(callback: CallbackQuery, session: AsyncSession):
+async def change_status(callback: CallbackQuery, session: AsyncSession, bot: Bot):
     _, number, status = callback.data.split(":")
-    candidate = await CandidateRepository(session).update_status(number, status)
+    repo = CandidateRepository(session)
+
+    candidate = await repo.get_by_number(number)
     if candidate is None:
         await callback.answer("Заявка не найдена", show_alert=True)
         return
 
+    if candidate.status == status:
+        await callback.answer("Уже в этом статусе")
+        return
+
+    candidate = await repo.update_status(number, status)
     await callback.message.edit_text(
         format_admin_card(candidate),
         reply_markup=card_kb(candidate),
     )
-    await callback.answer("Статус обновлён ✅")
+
+    # Уведомляем кандидата при «приглашён»/«отказ»
+    notified = await notify_candidate_status(bot, candidate)
+    if status in ("invited", "rejected"):
+        suffix = "кандидат уведомлён ✅" if notified else "не удалось уведомить ⚠️"
+        await callback.answer(f"Статус обновлён. {suffix}", show_alert=True)
+    else:
+        await callback.answer("Статус обновлён ✅")

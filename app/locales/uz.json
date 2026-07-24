@@ -60,5 +60,9 @@
     "resume_attached": "biriktirilgan",
     "resume_none": "yo'q",
 
-    "success": "✅ Rahmat! Sizning <b>{number}</b> arizangiz muvaffaqiyatli yuborildi.\n\nTez orada siz bilan bog'lanamiz. 🤝"
+    "success": "✅ Rahmat! Sizning <b>{number}</b> arizangiz muvaffaqiyatli yuborildi.\n\nTez orada siz bilan bog'lanamiz. 🤝",
+
+    "status_invited_msg": "🎉 Hurmatli {name}!\n\nTabriklaymiz! «{vacancy}» vakansiyasiga bergan <b>{number}</b> arizangiz bo'yicha ijobiy qaror qabul qilindi — <b>siz taklif qilindingiz</b>! 🤝\n\nTez orada HR-menejerimiz tafsilotlarni muhokama qilish va uchrashuv belgilash uchun siz bilan bog'lanadi.\n\nBizni tanlaganingiz uchun rahmat! 💙",
+
+    "status_rejected_msg": "Hurmatli {name}!\n\nKompaniyamizga qiziqish bildirganingiz va «{vacancy}» vakansiyasiga bergan <b>{number}</b> arizangiz uchun rahmat.\n\nAfsuski, hozircha sizga ushbu lavozimni taklif qila olmaymiz. Bu qaror sizning kasbiy fazilatlaringizni kamsitmaydi.\n\nSizga omad tilaymiz — kelajakda arizangizni ko'rishdan xursand bo'lamiz. 🙏"
 }
